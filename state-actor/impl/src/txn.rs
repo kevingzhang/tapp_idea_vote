@@ -1,10 +1,10 @@
 use crate::{
     account,
-    error::{Result, TxnErrors},
+    error::{Result},
     sql,
     utils::{check_account, decode_auth_key, my_token_id},
 };
-use idea_vote_state_actor_codec::txn::{Status, Txns};
+use idea_vote_state_actor_codec::txn::{Txns};
 use log::info;
 use prost::Message;
 use tea_sdk::{
@@ -12,10 +12,8 @@ use tea_sdk::{
     actors::tokenstate::{SqlBeginTransactionRequest, NAME},
     actorx::ActorId,
     serialize,
-    tapp::RECEIPTING_AUTH_KEY,
     utils::wasm_actor::actors::statemachine::{query_state_tsid, CommitContext, CommitContextList},
     vmh::message::{encode_protobuf, structs_proto::tokenstate},
-    OptionExt,
 };
 
 pub(crate) async fn txn_exec(tsid: Tsid, txn: &Txns) -> Result<()> {

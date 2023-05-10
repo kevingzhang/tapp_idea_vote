@@ -7,10 +7,10 @@ use tea_sdk::{
     actors::tokenstate::{ExecGlueCmdRequest, InitGlueSqlRequest, NAME},
     actorx::ActorId,
     serialize,
-    tapp::{Account, Balance, DOLLARS},
+    tapp::{Account, DOLLARS},
     utils::wasm_actor::{
         actors::tokenstate::{
-            query_first_row, query_select_rows, sql_query_first, sql_value_to_option_string,
+            query_first_row, query_select_rows, sql_query_first,
             sql_value_to_string, sql_value_to_u64,
         },
         prelude::Row,
@@ -29,7 +29,7 @@ pub(crate) async fn query_all_ideas() -> Result<Vec<Idea>> {
     rows.iter().map(|v| parse_idea(v)).collect()
 }
 
-pub(crate) async fn query_by_id(id: &str) -> Result<Idea> {
+pub(crate) async fn query_by_id(_id: &str) -> Result<Idea> {
     let payload = sql_query_first(
         my_token_id().await?,
         "SELECT * FROM Ideas WHERE id = '{id}';".into(),
@@ -69,7 +69,7 @@ pub(crate) async fn create_idea(
     exec_sql(tsid, sql).await
 }
 
-pub(crate) async fn vote_idea(tsid: Tsid, id: String, user: Account) -> Result<()> {
+pub(crate) async fn vote_idea(tsid: Tsid, id: String, _user: Account) -> Result<()> {
     let idea = query_by_id(&id).await?;
     exec_sql(
         tsid,

@@ -2,7 +2,7 @@
 #![allow(incomplete_features)]
 #![feature(async_fn_in_trait)]
 
-use error::{HttpActionNotSupported, Result};
+use error::{Result};
 use idea_vote_state_actor_codec::{txn::Txns, NAME, *};
 use log::{error, info};
 use tea_sdk::{
