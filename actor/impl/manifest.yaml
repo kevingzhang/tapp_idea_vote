@@ -1,0 +1,17 @@
+actor_id: idea-vote-actor
+owner_id: com.developer
+token_id: 1111111111111111111111111111111111111111
+access:
+  - tea:adapter
+  - tea:http
+  - tea:libp2p
+  - tea:nitro
+  - tea:keyvalue
+  - tea:replica
+  - tea:env
+  - com.tea.keyvalue-actor.manager
+  - com.tea.replica-service-actor
+  - com.tea.tappstore-actor
+  - com.tea.client-actor
+  - tea:crypto
+  - tea:orbitdb

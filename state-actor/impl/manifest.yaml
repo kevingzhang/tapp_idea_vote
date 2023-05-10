@@ -1,0 +1,16 @@
+actor_id: idea-vote-state-actor
+owner_id: com.developer
+token_id: 1111111111111111111111111111111111111111
+access:
+  - tea:adapter
+  - tea:statereceiver
+  - tea:tokenstate
+  - tea:replica
+  - tea:crypto
+  - tea:nitro
+  - tea:env
+  - tea:persist
+  - tea:keyvalue
+  - com.tea.keyvalue-actor.manager
+  - com.tea.tappstore-actor
+  - com.tea.ra-actor

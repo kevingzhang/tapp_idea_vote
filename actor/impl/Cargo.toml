@@ -1,0 +1,22 @@
+[package]
+name = "idea-vote-actor"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+idea-vote-actor-codec = { path = "../codec" }
+sample-txn-executor-codec = { path = "../../sample-txn-executor/codec" }
+tea-sdk = { workspace = true, features = ["wasm"] }
+thiserror = { workspace = true }
+serde_json = { workspace = true }
+log = { workspace = true }
+prost = { workspace = true }
+primitive-types = {workspace = true}
+serde = { workspace = true }
+serde_derive = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }
