@@ -8,7 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 idea-vote-actor-codec = { path = "../codec" }
-sample-txn-executor-codec = { path = "../../sample-txn-executor/codec" }
+idea-vote-state-actor-codec = { path = "../../state-actor/codec" }
 tea-sdk = { workspace = true, features = ["wasm"] }
 thiserror = { workspace = true }
 serde_json = { workspace = true }

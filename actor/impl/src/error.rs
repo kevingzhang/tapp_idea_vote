@@ -1,11 +1,10 @@
-use sample_actor_codec::error::SampleActor;
+use idea_vote_actor_codec::error::IdeaVoteActor;
 use tea_sdk::define_scope;
 use thiserror::Error;
 
 define_scope! {
-    Impl: SampleActor {
-        HttpActionNotSupported => @SampleActor::HttpActionNotSupported;
-        GreetingNameEmpty => @SampleActor::GreetingNameEmpty;
+    Impl: IdeaVoteActor {
+        HttpActionNotSupported => @IdeaVoteActor::HttpActionNotSupported;
     }
 }
 

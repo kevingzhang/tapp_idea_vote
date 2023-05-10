@@ -2,9 +2,8 @@
 #![allow(incomplete_features)]
 #![feature(async_fn_in_trait)]
 
-use crate::error::GreetingNameEmpty;
 use error::{Result};
-use sample_actor_codec::{GreetingsRequest, NAME};
+use idea_vote_actor_codec::{NAME};
 use tea_sdk::{
     actorx::{actor, hooks::Activate, HandlerActor, ActorId},
     serde::handle::{Handle, Handles},
@@ -13,7 +12,7 @@ use tea_sdk::{
     },
     Handle,
 };
-use tea_sdk::utils::client_wasm_actor::types::{map_handler, HttpRequest, ClientTxnCbRequest, map_cb_handler};
+use tea_sdk::utils::client_wasm_actor::types::{map_handler, HttpRequest};
 
 use ::{log::info, tea_sdk::utils::wasm_actor::actors::adapter::register_adapter_http_dispatcher};
 use tea_sdk::utils::client_wasm_actor::types::map_fn_list;
@@ -27,7 +26,6 @@ pub mod error;
 mod types;
 mod dfn;
 mod api;
-mod oracle;
 
 actor!(Actor);
 
@@ -37,9 +35,7 @@ pub struct Actor;
 impl Handles for Actor {
     type List = Handle![
         Activate,
-        HttpRequest,
-        GreetingsRequest,
-        ClientTxnCbRequest
+        HttpRequest
     ];
 }
 
@@ -58,7 +54,7 @@ impl Handle<Activate> for Actor {
     async fn handle(&self, _: Activate) -> Result<()> {
         let list = [&map_fn_list()[..], &crate::dfn::name_list()[..]].concat();
         register_adapter_http_dispatcher(list.iter().map(|v| v.to_string()).collect()).await?;
-        info!("activate tutorial-v1 actor successfully...");
+        info!("activate {:?} successfully...", NAME);
         Ok(())
     }
 
@@ -77,25 +73,3 @@ impl Handle<HttpRequest> for Actor {
 	}
 }
 
-impl Handle<ClientTxnCbRequest> for Actor {
-	async fn handle(&self, req: ClientTxnCbRequest) -> Result<Vec<u8>> {
-		let from_actor = req.clone().from_actor;
-		let base_res = map_cb_handler(&req.action, req.clone().payload, from_actor.clone()).await?;
-        let cur_res = crate::dfn::map_cb_handler(&req.action, req.payload, from_actor).await?;
-		if cur_res.is_empty() && !base_res.is_empty() {
-			return Ok(base_res);
-		}
-		Ok(cur_res)
-	}
-}
-
-impl Handle<GreetingsRequest> for Actor {
-    async fn handle(&self, GreetingsRequest(name): GreetingsRequest) -> Result<()> {
-        if name.is_empty() {
-            return Err(GreetingNameEmpty.into());
-        }
-
-        println!("Hello, {name}!");
-        Ok(())
-    }
-}
