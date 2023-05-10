@@ -6,7 +6,7 @@ use tea_sdk::{serde::TypeId, tapp::Account};
 pub mod error;
 pub mod txn;
 
-pub const NAME: &[u8] = b"com.developer.idea-vote-state-actor-executor";
+pub const NAME: &[u8] = b"com.developer.idea-vote-state-actor";
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct IdeaQueryRequest {

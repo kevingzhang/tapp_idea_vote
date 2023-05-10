@@ -5,6 +5,7 @@ import './elementui-style/index.css';
 import ElementUI from 'element-ui';
 import { Loading } from 'element-ui';
 import locale from 'element-ui/lib/locale/lang/en';
+// import VueCkeditor from 'vue-ckeditor2';
 
 import router from './router';
 import './style.scss';
@@ -22,8 +23,8 @@ import layer2 from './layer2';
 import {ContractMap} from './eth/consts';
 
 
-
 Vue.use(ElementUI, { locale });
+// Vue.use(VueCkeditor);
 Vue.config.productionTip = false;
 
 router.beforeEach((to, from, next) => {

@@ -29,10 +29,10 @@ pub(crate) async fn query_all_ideas() -> Result<Vec<Idea>> {
     rows.iter().map(|v| parse_idea(v)).collect()
 }
 
-pub(crate) async fn query_by_id(_id: &str) -> Result<Idea> {
+pub(crate) async fn query_by_id(id: &str) -> Result<Idea> {
     let payload = sql_query_first(
         my_token_id().await?,
-        "SELECT * FROM Ideas WHERE id = '{id}';".into(),
+        format!("SELECT * FROM Ideas WHERE id = '{id}';"),
     )
     .await?;
     let r = query_first_row(&payload)?;
@@ -73,7 +73,7 @@ pub(crate) async fn vote_idea(tsid: Tsid, id: String, _user: Account) -> Result<
     let idea = query_by_id(&id).await?;
     exec_sql(
         tsid,
-        format!("UPDATE Ideas SET vote_num = {};", idea.vote_num + 1),
+        format!("UPDATE Ideas SET vote_num = {} WHERE id = '{id}';", idea.vote_num + 1),
     )
     .await?;
 
@@ -116,7 +116,7 @@ fn parse_idea(v: &Row) -> Result<Idea> {
             .to_string(),
         owner: sql_value_to_string(v.get_value_by_index(3).ok_or_err("owner")?)?.parse()?,
         create_at: sql_value_to_u64(v.get_value_by_index(7).ok_or_err("0")?)?,
-        vote_num: sql_value_to_u64(v.get_value_by_index(7).ok_or_err("0")?)?,
+        vote_num: sql_value_to_u64(v.get_value_by_index(5).ok_or_err("0")?)?,
     };
     Ok(idea)
 }

@@ -1,46 +1,39 @@
 <template>
 <div class="tea-page">
-  <h4>Retweet task list</h4>
+  <h4>Idea list</h4>
 
   <el-button size="small" class="tea-refresh-btn" type="primary" plain icon="el-icon-refresh" circle @click="refreshList()"></el-button>
   <TeaTable
     :data="list || []"
-    name="task_list_table"
+    name="idea_list_table"
   >
     <el-table-column
-      prop="subject"
-      label="Tweet Id"
+      prop="id"
+      label="Idea id"
     />
 
     <el-table-column
-      prop="creator"
+      prop="owner"
       label="Creator"
     />
 
     <el-table-column
-      label="Price"
+      label="title"
     >
       <template slot-scope="scope">
-        <span :inner-html.prop="scope.row.price | teaIcon"></span>
+        <span :inner-html.prop="scope.row.title"></span>
       </template>
     </el-table-column>
 
-    <el-table-column
-      label="Required deposit"
-    >
-      <template slot-scope="scope">
-        <span :inner-html.prop="scope.row.deposit | teaIcon"></span>
-      </template>
-    </el-table-column>
 
     <el-table-column
-      prop="worker"
-      label="Worker"
+      prop="vote_num"
+      label="Vote count"
     />
 
     <el-table-column
-      prop="status"
-      label="Status"
+      prop="create_at"
+      label="Created at"
     />
 
     <el-table-column
@@ -50,13 +43,9 @@
     >
       <template slot-scope="scope">
         
-
-        <TeaIconButton v-if="!$root.eq(scope.row.creator, user.address) && scope.row.status==='New'" tip="Take task" icon="NA" title="Take" @click="takeTask(scope.row)" />
-        <TeaIconButton v-if="$root.eq(scope.row.worker, user.address) && scope.row.status==='InProgress'" tip="Complete task" icon="NA" title="Complete" @click="completeTask(scope.row)" />
-
-
-
-        <TeaIconButton v-if="$root.eq(scope.row.creator, user.address) && (scope.row.status==='New' || scope.row.status==='Done')" tip="Remove task" icon="NA" title="Remove" @click="deleteTask(scope.row)" />
+        <TeaIconButton icon="NA" title="View" @click="viewIdea(scope.row)" />
+        <TeaIconButton icon="NA" title="Vote" @click="voteIdea(scope.row)" />
+        
       </template>
     </el-table-column>
 
@@ -68,10 +57,58 @@
     position: relative;
   ">
 
-    <el-button style="width:400px;position:absolute;top:0; right:0;" type="primary" @click="createNewTask()">Create new task</el-button>
+    <el-button style="width:400px;position:absolute;top:0; right:0;" type="primary" @click="createNewIdeaModal()">Create new idea</el-button>
   </div>
   
-  
+  <el-dialog
+    title="Create idea"
+    :visible="modal.visible"
+    width="80%"
+    :close-on-click-modal="false"
+    custom-class="tea-modal"
+    :destroy-on-close="true"
+    @opened="openHandler()"
+    @close="close()"
+  >
+    <div>
+      <el-input type="text" v-model="modal.title" placeholder="Idea title"></el-input>
+
+      <vue-ckeditor 
+        style="margin-top: 30px;"
+        v-model="modal.description" 
+        :config="modal.config" 
+        @blur="onBlur($event)" 
+        @focus="onFocus($event)"
+        @contentDom="onContentDom($event)"
+        @dialogDefinition="onDialogDefinition($event)" />
+    </div>
+
+
+    <span slot="footer" class="dialog-footer">
+      <el-button size="small" @click="close()">Cancel</el-button>
+      <el-button size="small" type="primary" @click="createNewIdea()">
+        Confirm
+      </el-button>
+    </span>
+
+  </el-dialog>
+
+  <el-dialog
+    title="Idea details"
+    :visible="vw.visible"
+    width="80%"
+    :close-on-click-modal="true"
+    custom-class="tea-modal"
+    :destroy-on-close="true"
+    @close="vw.visible=false"
+  >
+    <div v-if="vw.visible">
+      <h4 v-html="vw.title" style="text-align:center;margin-top:0;font-size: 19px;"></h4>
+      <hr style="height: 1px; background: #ddd; border: none;" />
+      <div v-html="vw.description"></div>
+    </div>
+
+  </el-dialog>
 
 </div>
 </template>
@@ -84,15 +121,43 @@ import TeaTable from '../components/TeaTable';
 import TeaTableColumn from '../components/TeaTableColumn';
 import TeaIconButton from '../components/TeaIconButton';
 import layer2 from '../layer2';
+import VueCkeditor from 'vue-ckeditor2';
+
+
 export default {
   components: {
     TeaTable,
     TeaIconButton,
     TeaTableColumn,
+    VueCkeditor,
   },
   data(){
     return {
       list: null,
+      modal: {
+        visible: false,
+        title: '',
+        description: '',
+        config: {
+          toolbar: [
+            { name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
+            { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'CopyFormatting', 'RemoveFormat' ] },
+            { name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl', 'Language' ] },
+            { name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },
+            { name: 'insert', items: [ 'Table', 'HorizontalRule', 'Smiley', 'SpecialChar', 'PageBreak'] },
+            '/',
+            { name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },
+            { name: 'colors', items: [ 'TextColor', 'BGColor' ] },
+            { name: 'tools', items: [ 'Maximize', 'ShowBlocks' ] },
+          ],
+          height: 250
+        }
+      },
+      vw: {
+        visible: false,
+        title: '',
+        description: '',
+      }
     }
   },
   computed: {
@@ -109,63 +174,61 @@ export default {
   methods: {
     async refreshList(){
       this.$root.loading(true);
-      const list = await layer2.task.queryTaskList(this);
+      const list = await layer2.task.queryIdeaList(this);
       this.list = list;
       this.$root.loading(false);
     },
     
-    async createNewTask(){
-      try{
-        await layer2.task.createNewTask(this, {}, async (rs)=>{
-          this.$root.success("create task success");
-          await this.refreshList();
-        });
-      }catch(e){
-        this.$root.showError(e);
-      }
+    async createNewIdeaModal(){
+      this.modal.visible = true;
     },
-    async deleteTask(row){
-      try{
-        await layer2.task.deleteTask(this, row, async (rs)=>{
-          this.$root.success("delete task success");
-          await this.refreshList();
-        });
-      }catch(e){
-        this.$root.showError(e);
-      }
-    },
-    async completeTask(row){
-      try{
-        await layer2.task.completeTask(this, row, async (rs)=>{
-          this.$root.success("The task bounty has been deposited into your wallet.");
-          await utils.sleep(8000);
-          await this.refreshList();
-        });
-      }catch(e){
-        this.$root.showError(e);
-      }
-    },
-    async takeTask(row){
-      try{
-        await layer2.task.takeTask(this, row, async (rs)=>{
-          this.$root.success("Take task success");
-          await this.refreshList();
-        });
-      }catch(e){
-        this.$root.showError(e);
-      }
-    },
-    // async verifyTask(row, ok){
-    //   try{
-    //     await layer2.task.verifyTask(this, {...row, ok}, async (rs)=>{
-    //       this.$root.success("Verify task success");
-    //       await this.refreshList();
-    //     });
-    //   }catch(e){
-    //     this.$root.showError(e);
-    //   }
-    // }
     
+    
+    openHandler(){
+      this.modal.title = '';
+      this.modal.description = '';
+    },
+    onBlur(evt) {},
+    onFocus(evt) {},
+    onContentDom(evt) {},
+    onDialogDefinition(evt) {},
+
+    close(){
+      this.modal.visible = false;
+    },
+
+    async createNewIdea(){
+      const opts = {
+        title: utils.forge.util.encode64(encodeURIComponent(this.modal.title)),
+        description: utils.forge.util.encode64(encodeURIComponent(this.modal.description))
+      };
+      if(!opts.title){
+        return this.$root.showError("Invalid idea title");
+      }
+      if(!opts.description){
+        return this.$root.showError("Invalid idea description");
+      }
+
+      await layer2.task.createNewIdea(this, opts);
+      this.close();
+      this.$root.success("create idea success");
+      await this.refreshList();
+    },
+    async viewIdea(row){
+      this.vw.title = row.title;
+      this.vw.description = row.description;
+      this.vw.visible = true;
+    },
+    async voteIdea(row){
+      try{
+        await layer2.task.voteIdea(this, row, async (rs)=>{
+          this.$root.success("Vote idea success");
+          await this.refreshList();
+        });
+      }catch(e){
+        this.$root.showError(e);
+      }
+    }
   }
 };
 </script>
