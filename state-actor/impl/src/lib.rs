@@ -47,7 +47,7 @@ impl HandlerActor for Actor {
 
 impl Handle<Activate> for Actor {
     async fn handle(&self, _: Activate) -> Result<()> {
-        info!("activate {:?} successfully.", NAME);
+        info!("activate idea-vote-state-actor successfully.");
         Ok(())
     }
 }

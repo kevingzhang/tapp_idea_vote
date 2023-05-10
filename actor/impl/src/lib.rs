@@ -54,7 +54,7 @@ impl Handle<Activate> for Actor {
     async fn handle(&self, _: Activate) -> Result<()> {
         let list = [&map_fn_list()[..], &crate::dfn::name_list()[..]].concat();
         register_adapter_http_dispatcher(list.iter().map(|v| v.to_string()).collect()).await?;
-        info!("activate {:?} successfully...", NAME);
+        info!("activate idea-vote-actor successfully...");
         Ok(())
     }
 
