@@ -7,7 +7,7 @@ use tea_sdk::{
     actors::tokenstate::{ExecGlueCmdRequest, InitGlueSqlRequest, NAME},
     actorx::ActorId,
     serialize,
-    tapp::{Account, DOLLARS},
+    tapp::{Account, Balance},
     utils::wasm_actor::{
         actors::tokenstate::{
             query_first_row, query_select_rows, sql_query_first,
@@ -55,6 +55,7 @@ pub(crate) async fn create_idea(
     title: String,
     description: String,
     owner: Account,
+    unit: Balance,
 ) -> Result<()> {
     let sql = format!(
         r#"
@@ -63,7 +64,7 @@ pub(crate) async fn create_idea(
     );
         "#,
         status = Status::New,
-        price = DOLLARS.to_string(),
+        price = unit.to_string(),
         create_at = to_short_timestamp(tsid.ts)?,
     );
     exec_sql(tsid, sql).await
@@ -117,6 +118,7 @@ fn parse_idea(v: &Row) -> Result<Idea> {
         owner: sql_value_to_string(v.get_value_by_index(3).ok_or_err("owner")?)?.parse()?,
         create_at: sql_value_to_u64(v.get_value_by_index(7).ok_or_err("0")?)?,
         vote_num: sql_value_to_u64(v.get_value_by_index(5).ok_or_err("0")?)?,
+        unit: sql_value_to_string(v.get_value_by_index(6).ok_or_err("id")?)?.to_string(),
     };
     Ok(idea)
 }

@@ -56,6 +56,7 @@ pub async fn create_idea(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>
 		description: req.description.to_string(), 
 		owner: req.address.parse()?, 
 		auth_b64: req.auth_b64.to_string(),
+		unit: Balance::from_str_radix(&req.unit, 10)?,
 	};
 
 	request::send_custom_txn(

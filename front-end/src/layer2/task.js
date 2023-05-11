@@ -48,6 +48,7 @@ const F = {
 
     self.$root.loading(true);
     const tappId = base.getTappId();
+    const amount = utils.layer1.amountToBalance(param.unit);
     const opts = {
       address: self.layer1_account.address,
       tappIdB64: tappId,
@@ -55,6 +56,7 @@ const F = {
       id: uuid(),
       title: param.title,
       description: param.description,
+      unit: utils.toBN(amount).toString(),
     };
 
     try {
@@ -69,8 +71,9 @@ const F = {
   
   async voteIdea(self, param, succ_cb){
     const session_key = user.checkLogin(self);
+    const amt = utils.layer1.balanceToAmount(param.unit);
     try{
-      await self.$confirm('Are you sure to vote this idea with 1 TEA', {
+      await self.$confirm('Are you sure to vote this idea with '+amt+' TEA', {
         title: 'Vote idea',
         dangerouslyUseHTMLString: true,
       });
@@ -100,12 +103,15 @@ const F = {
     const rs = await txn.query_request('query_idea_list', {
       address: self.layer1_account.address,
     });
-    return _.map(rs.list, (item)=>{
+    const list = _.map(rs.list, (item)=>{
       item.title = decodeURIComponent(utils.forge.util.decode64(item.title));
       item.description = decodeURIComponent(utils.forge.util.decode64(item.description));
       item.create_at = moment.utc(item.create_at*1000).format('YYYY-MM-DD hh:mm');
+      item.total = utils.layer1.balanceToAmount(item.unit) * item.vote_num;
       return item;
     });
+
+    return _.reverse(_.sortBy(list, 'total'));
   }
 
 

@@ -18,6 +18,7 @@ pub struct CreateIdeaRequest {
   pub id: String,
   pub title: String,
   pub description: String,
+  pub unit: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

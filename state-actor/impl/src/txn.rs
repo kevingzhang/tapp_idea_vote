@@ -8,6 +8,7 @@ use idea_vote_state_actor_codec::txn::{Txns};
 use log::info;
 use prost::Message;
 use tea_sdk::{
+    tapp::Balance,
     actor_txns::{context::TokenContext, Tsid},
     actors::tokenstate::{SqlBeginTransactionRequest, NAME},
     actorx::ActorId,
@@ -35,9 +36,10 @@ pub(crate) async fn txn_exec(tsid: Tsid, txn: &Txns) -> Result<()> {
             description,
             owner,
             auth_b64,
+            unit,
         } => {
             check_account(auth_b64, *owner).await?;
-            let (tappstore_ctx, ctx) = account::deposit_for_idea(tsid, base, *owner, ctx).await?;
+            let (tappstore_ctx, ctx) = account::deposit_for_idea(tsid, base, *owner, *unit, ctx).await?;
             let glue_ctx = new_gluedb_context().await?;
             sql::create_idea(
                 tsid,
@@ -45,6 +47,7 @@ pub(crate) async fn txn_exec(tsid: Tsid, txn: &Txns) -> Result<()> {
                 title.to_string(),
                 description.to_string(),
                 *owner,
+                *unit,
             )
             .await?;
             CommitContextList {
@@ -64,7 +67,9 @@ pub(crate) async fn txn_exec(tsid: Tsid, txn: &Txns) -> Result<()> {
         }
         Txns::VoteIdea { id, user, auth_b64 } => {
             check_account(auth_b64, *user).await?;
-            let (tappstore_ctx, ctx) = account::deposit_for_idea(tsid, base, *user, ctx).await?;
+            let idea = sql::query_by_id(&id).await?;
+            let unit = Balance::from_str_radix(&idea.unit, 10)?;
+            let (tappstore_ctx, ctx) = account::deposit_for_idea(tsid, base, *user, unit, ctx).await?;
 
             let glue_ctx = new_gluedb_context().await?;
             sql::vote_idea(tsid, id.to_string(), *user).await?;

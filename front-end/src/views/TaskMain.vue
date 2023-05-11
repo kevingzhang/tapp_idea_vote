@@ -7,10 +7,20 @@
     :data="list || []"
     name="idea_list_table"
   >
-    <el-table-column
+    <!-- <el-table-column
       prop="id"
       label="Idea id"
-    />
+    /> -->
+
+    
+
+    <el-table-column
+      label="Title"
+    >
+      <template slot-scope="scope">
+        <span :inner-html.prop="scope.row.title"></span>
+      </template>
+    </el-table-column>
 
     <el-table-column
       prop="owner"
@@ -18,18 +28,18 @@
     />
 
     <el-table-column
-      label="title"
+      label="Deposit"
     >
       <template slot-scope="scope">
-        <span :inner-html.prop="scope.row.title"></span>
+        <span :inner-html.prop="scope.row.total | teaIcon"></span>
       </template>
     </el-table-column>
-
 
     <el-table-column
       prop="vote_num"
       label="Vote count"
     />
+    
 
     <el-table-column
       prop="create_at"
@@ -38,7 +48,7 @@
 
     <el-table-column
       label="Actions"
-      width="200"
+      width="100"
       fixed="right"
     >
       <template slot-scope="scope">
@@ -71,8 +81,8 @@
     @close="close()"
   >
     <div>
-      <el-input type="text" v-model="modal.title" placeholder="Idea title"></el-input>
-
+      <div><el-input type="text" v-model="modal.title" placeholder="Idea title"></el-input></div>
+      <div style="margin-top: 30px;" ><el-input-number v-model="modal.unit" :min="1" :step="1" :max="100" placeholder="Vote price"></el-input-number><label style="margin-left: 15px;display: inline-block;">( Vote unit price )</label></div>
       <vue-ckeditor 
         style="margin-top: 30px;"
         v-model="modal.description" 
@@ -82,6 +92,8 @@
         @contentDom="onContentDom($event)"
         @dialogDefinition="onDialogDefinition($event)" />
     </div>
+
+
 
 
     <span slot="footer" class="dialog-footer">
@@ -138,6 +150,7 @@ export default {
         visible: false,
         title: '',
         description: '',
+        unit: 1,
         config: {
           toolbar: [
             { name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
@@ -187,6 +200,7 @@ export default {
     openHandler(){
       this.modal.title = '';
       this.modal.description = '';
+      this.modal.unit = 1;
     },
     onBlur(evt) {},
     onFocus(evt) {},
@@ -200,13 +214,17 @@ export default {
     async createNewIdea(){
       const opts = {
         title: utils.forge.util.encode64(encodeURIComponent(this.modal.title)),
-        description: utils.forge.util.encode64(encodeURIComponent(this.modal.description))
+        description: utils.forge.util.encode64(encodeURIComponent(this.modal.description)),
+        unit: this.modal.unit,
       };
       if(!opts.title){
         return this.$root.showError("Invalid idea title");
       }
       if(!opts.description){
         return this.$root.showError("Invalid idea description");
+      }
+      if(!opts.unit){
+        return this.$root.showError("Invalid vote price");
       }
 
       await layer2.task.createNewIdea(this, opts);

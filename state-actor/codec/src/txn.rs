@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use strum_macros::{AsRefStr, Display, EnumString};
-use tea_sdk::tapp::Account;
+use tea_sdk::tapp::{Account, Balance};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Idea {
@@ -10,6 +10,7 @@ pub struct Idea {
     pub owner: Account,
     pub create_at: u64,
     pub vote_num: u64,
+    pub unit: String,
 }
 
 #[derive(
@@ -30,6 +31,7 @@ pub enum Txns {
         description: String,
         owner: Account,
         auth_b64: String,
+        unit: Balance,
     },
     VoteIdea {
         id: String,
