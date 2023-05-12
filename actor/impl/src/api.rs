@@ -50,13 +50,17 @@ pub async fn create_idea(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>
   check_auth(&req.tapp_id_b64, &req.address, &req.auth_b64).await?;
 	info!("Create idea action...");
 
+	let unit = Balance::from_str_radix(&req.unit, 10)?;
+	if unit < DOLLARS {
+		return help::result_error("Invalid init contribution".into());
+	}
 	let txn = Txns::CreateIdea { 
 		id: req.id.to_string(),
 		title: req.title.to_string(), 
 		description: req.description.to_string(), 
 		owner: req.address.parse()?, 
 		auth_b64: req.auth_b64.to_string(),
-		unit: Balance::from_str_radix(&req.unit, 10)?,
+		unit,
 	};
 
 	request::send_custom_txn(
@@ -78,11 +82,15 @@ pub async fn vote_idea(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> 
   check_auth(&req.tapp_id_b64, &req.address, &req.auth_b64).await?;
 	info!("Vote idea action...");
 
+	let price = Balance::from_str_radix(&req.price, 10)?;
+	if price < DOLLARS {
+		return help::result_error("Invalid contribution".into());
+	}
 	let txn = Txns::VoteIdea {
 		id: req.id.to_string(),
 		user: req.address.parse()?, 
 		auth_b64: req.auth_b64.to_string(),
-		price: Balance::from_str_radix(&req.price, 10)?,
+		price,
 	};
 
 	request::send_custom_txn(
