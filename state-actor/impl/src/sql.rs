@@ -1,5 +1,5 @@
 use crate::{error::Result, utils::my_token_id};
-use idea_vote_state_actor_codec::txn::{Idea, Status};
+use idea_vote_state_actor_codec::txn::{Idea};
 use log::info;
 use tea_sdk::vmh::utils::to_short_timestamp;
 use tea_sdk::{
@@ -22,7 +22,7 @@ use tea_sdk::{
 pub(crate) async fn query_all_ideas() -> Result<Vec<Idea>> {
     let payload = sql_query_first(
         my_token_id().await?,
-        "SELECT * FROM Ideas ORDER BY vote_num DESC;".into(),
+        "SELECT * FROM Ideas;".into(),
     )
     .await?;
     let rows = query_select_rows(&payload)?;
@@ -60,21 +60,22 @@ pub(crate) async fn create_idea(
     let sql = format!(
         r#"
     INSERT INTO Ideas VALUES (
-        '{id}', '{title}', '{description}', '{owner:?}', '{status}', 1, '{price}', {create_at}
+        '{id}', '{title}', '{description}', '{owner:?}', {create_at}, '{total_contribution}'
     );
         "#,
-        status = Status::New,
-        price = unit.to_string(),
         create_at = to_short_timestamp(tsid.ts)?,
+        total_contribution = unit.to_string(),
     );
     exec_sql(tsid, sql).await
 }
 
-pub(crate) async fn vote_idea(tsid: Tsid, id: String, _user: Account) -> Result<()> {
+pub(crate) async fn vote_idea(tsid: Tsid, id: String, _user: Account, price: Balance) -> Result<()> {
     let idea = query_by_id(&id).await?;
+    let total_contribution = Balance::from_str_radix(&idea.total_contribution, 10)?;
+    let new_total_contribution = total_contribution.checked_add(price).ok_or_err("add overflow")?;
     exec_sql(
         tsid,
-        format!("UPDATE Ideas SET vote_num = {} WHERE id = '{id}';", idea.vote_num + 1),
+        format!("UPDATE Ideas SET total_contribution = '{}' WHERE id = '{id}';", new_total_contribution.to_string()),
     )
     .await?;
 
@@ -116,9 +117,8 @@ fn parse_idea(v: &Row) -> Result<Idea> {
         description: sql_value_to_string(v.get_value_by_index(2).ok_or_err("description")?)?
             .to_string(),
         owner: sql_value_to_string(v.get_value_by_index(3).ok_or_err("owner")?)?.parse()?,
-        create_at: sql_value_to_u64(v.get_value_by_index(7).ok_or_err("0")?)?,
-        vote_num: sql_value_to_u64(v.get_value_by_index(5).ok_or_err("0")?)?,
-        unit: sql_value_to_string(v.get_value_by_index(6).ok_or_err("id")?)?.to_string(),
+        create_at: sql_value_to_u64(v.get_value_by_index(4).ok_or_err("0")?)?,
+        total_contribution: sql_value_to_string(v.get_value_by_index(5).ok_or_err("total_contribution")?)?.to_string(),
     };
     Ok(idea)
 }

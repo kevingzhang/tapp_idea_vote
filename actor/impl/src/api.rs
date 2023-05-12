@@ -82,6 +82,7 @@ pub async fn vote_idea(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> 
 		id: req.id.to_string(),
 		user: req.address.parse()?, 
 		auth_b64: req.auth_b64.to_string(),
+		price: Balance::from_str_radix(&req.price, 10)?,
 	};
 
 	request::send_custom_txn(

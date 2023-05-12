@@ -8,7 +8,6 @@ use idea_vote_state_actor_codec::txn::{Txns};
 use log::info;
 use prost::Message;
 use tea_sdk::{
-    tapp::Balance,
     actor_txns::{context::TokenContext, Tsid},
     actors::tokenstate::{SqlBeginTransactionRequest, NAME},
     actorx::ActorId,
@@ -65,14 +64,12 @@ pub(crate) async fn txn_exec(tsid: Tsid, txn: &Txns) -> Result<()> {
                 ..Default::default()
             }
         }
-        Txns::VoteIdea { id, user, auth_b64 } => {
+        Txns::VoteIdea { id, user, auth_b64, price } => {
             check_account(auth_b64, *user).await?;
-            let idea = sql::query_by_id(&id).await?;
-            let unit = Balance::from_str_radix(&idea.unit, 10)?;
-            let (tappstore_ctx, ctx) = account::deposit_for_idea(tsid, base, *user, unit, ctx).await?;
+            let (tappstore_ctx, ctx) = account::deposit_for_idea(tsid, base, *user, *price, ctx).await?;
 
             let glue_ctx = new_gluedb_context().await?;
-            sql::vote_idea(tsid, id.to_string(), *user).await?;
+            sql::vote_idea(tsid, id.to_string(), *user, *price).await?;
 
             CommitContextList {
                 ctx_list: vec![

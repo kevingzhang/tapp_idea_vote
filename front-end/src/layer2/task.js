@@ -71,31 +71,45 @@ const F = {
   
   async voteIdea(self, param, succ_cb){
     const session_key = user.checkLogin(self);
-    const amt = utils.layer1.balanceToAmount(param.unit);
-    try{
-      await self.$confirm('Are you sure to vote this idea with '+amt+' TEA', {
+
+    self.$store.commit('modal/open', {
+      key: 'common_form', 
+      param: {
         title: 'Vote idea',
-        dangerouslyUseHTMLString: true,
-      });
-    }catch(e){
-      return;
-    }
+        confirm_text: 'Confirm',
+        text: `Please input your contribution`,
+        props: {
+          price: {
+            label: 'Contribution',
+            type: 'number',
+            max: 100000000,
+            default: 1,
+            min: 1,
+            required: true,
+          },
+        },
+      },
+      cb: async (form, close)=>{
+        const price = utils.layer1.amountToBalance(form.price);
+        const opts = {
+          address: self.layer1_account.address,
+          tappIdB64: base.getTappId(),
+          authB64: session_key,
+          id: param.id,
+          price: utils.toBN(price).toString(),
+        };
+    
+        try {
+          await txn.txn_request('vote_idea', opts);
+          close();
+          await succ_cb();
+        } catch (e) {
+          self.$root.showError(e.toString());
+        }
+        self.$root.loading(false);
+      },
+    });
 
-    const opts = {
-      address: self.layer1_account.address,
-      tappIdB64: base.getTappId(),
-      authB64: session_key,
-      id: param.id,
-    };
-
-    try {
-      await txn.txn_request('vote_idea', opts);
-      await succ_cb();
-    } catch (e) {
-      console.error(e);
-      self.$root.showError(e.toString());
-    }
-    self.$root.loading(false);
   },
   
   
@@ -107,7 +121,7 @@ const F = {
       item.title = decodeURIComponent(utils.forge.util.decode64(item.title));
       item.description = decodeURIComponent(utils.forge.util.decode64(item.description));
       item.create_at = moment.utc(item.create_at*1000).format('YYYY-MM-DD hh:mm');
-      item.total = utils.layer1.balanceToAmount(item.unit) * item.vote_num;
+      item.total = utils.layer1.balanceToAmount(item.total_contribution);
       return item;
     });
 

@@ -9,8 +9,7 @@ pub struct Idea {
     pub description: String,
     pub owner: Account,
     pub create_at: u64,
-    pub vote_num: u64,
-    pub unit: String,
+    pub total_contribution: String,
 }
 
 #[derive(
@@ -37,5 +36,6 @@ pub enum Txns {
         id: String,
         user: Account,
         auth_b64: String,
+        price: Balance,
     },
 }

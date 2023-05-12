@@ -30,6 +30,7 @@ pub struct VoteIdeaRequest {
   pub auth_b64: String,
 
   pub id: String,
+  pub price: String,
 }
 
 

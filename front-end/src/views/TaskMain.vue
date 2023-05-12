@@ -28,17 +28,13 @@
     />
 
     <el-table-column
-      label="Deposit"
+      label="Contribution"
     >
       <template slot-scope="scope">
         <span :inner-html.prop="scope.row.total | teaIcon"></span>
       </template>
     </el-table-column>
 
-    <el-table-column
-      prop="vote_num"
-      label="Vote count"
-    />
     
 
     <el-table-column
@@ -82,7 +78,7 @@
   >
     <div>
       <div><el-input type="text" v-model="modal.title" placeholder="Idea title"></el-input></div>
-      <div style="margin-top: 30px;" ><el-input-number v-model="modal.unit" :min="1" :step="1" :max="100" placeholder="Vote price"></el-input-number><label style="margin-left: 15px;display: inline-block;">( Vote unit price )</label></div>
+      <div style="margin-top: 30px;" ><el-input-number v-model="modal.unit" :min="1" :step="1" :max="100" placeholder="Vote price"></el-input-number><label style="margin-left: 15px;display: inline-block;">( Init contribution )</label></div>
       <vue-ckeditor 
         style="margin-top: 30px;"
         v-model="modal.description" 
@@ -220,11 +216,11 @@ export default {
       if(!opts.title){
         return this.$root.showError("Invalid idea title");
       }
+      if(!opts.unit){
+        return this.$root.showError("Invalid contribution");
+      }
       if(!opts.description){
         return this.$root.showError("Invalid idea description");
-      }
-      if(!opts.unit){
-        return this.$root.showError("Invalid vote price");
       }
 
       await layer2.task.createNewIdea(this, opts);
@@ -238,14 +234,10 @@ export default {
       this.vw.visible = true;
     },
     async voteIdea(row){
-      try{
-        await layer2.task.voteIdea(this, row, async (rs)=>{
-          this.$root.success("Vote idea success");
-          await this.refreshList();
-        });
-      }catch(e){
-        this.$root.showError(e);
-      }
+      await layer2.task.voteIdea(this, row, async (rs)=>{
+        this.$root.success("Vote idea success");
+        await this.refreshList();
+      });
     }
   }
 };
