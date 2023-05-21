@@ -14,6 +14,10 @@ const meta = {
   
 };
 
+if(_.toLower(process.env.NODE_ENV) === 'production'){
+  meta.server_url = location.protocol+'//'+location.hostname+':8000';
+}
+
 const _axios = axios.create({
   baseURL: meta.server_url,
 });
